@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To Do List</title>
+
+ <link rel="icon" href="img/icon.png">
+ <link rel="stylesheet" href="mystyle.css">   
+</head>
+<body>
+    <div id="todo-container">
+        <h1>To Do List</h1>
+        <img src="img/gif.gif" width="300" 
+        height="200"   />
+        
+        <div class="add-todo">
+            <input type="text" id="todo-input" placeholder="Type what to do">
+            <button onclick="addTodo()">Add</button>
+        </div>
+        <h3>Tasks</h3>
+        <ul id="todo-list"></ul>
+    
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            loadTodos();
+        });
+        function loadTodos() {
+            const todoList = JSON.parse(localStorage.getItem('todos')) || [];
+            const todoListContainer = document.getElementById('todo-list');
+            todoListContainer.innerHTML = '';
+            todoList.forEach(function (todo, index) {
+                createTodoElement(todo, index);
+            });
+        }
+        function saveTodos(todos) {
+            localStorage.setItem('todos', JSON.stringify(todos));
+        }
+        function addTodo() {
+            const todoInput = document.getElementById('todo-input');
+            const todoText = todoInput.value.trim();
+            if (todoText !== '') {
+                const todoList = JSON.parse(localStorage.getItem('todos')) || [];
+                todoList.push({ text: todoText, completed: false });
+                saveTodos(todoList);
+                loadTodos();
+                todoInput.value = '';
+            }
+        }
+        function deleteTodo(index) {
+            const todoList = JSON.parse(localStorage.getItem('todos')) || [];
+            todoList.splice(index, 1);
+            saveTodos(todoList);
+            loadTodos();
+        }
+        
+        function editTodoStart(index) {
+            const todoText = document.getElementById(`todo-text-${index}`);
+            const originalText = todoText.innerText;
+            const checkbox = document.getElementById(`checkbox-${index}`);
+            if (!checkbox.checked) {
+                if (!todoText.getAttribute('contenteditable')) {
+                    todoText.setAttribute('contenteditable', 'true');
+                    todoText.focus();
+                } else {
+                    todoText.setAttribute('contenteditable', 'false');
+                    editTodoSave(index, todoText.innerText);
+                }
+            }
+        }
+        function editTodoSave(index, newText) {
+            const todoList = JSON.parse(localStorage.getItem('todos')) || [];
+            todoList[index].text = newText;
+            saveTodos(todoList);
+            loadTodos();
+        }
+        function editTodoCancel(index, originalText) {
+            const todoText = document.getElementById(`todo-text-${index}`);
+            todoText.innerHTML = originalText;
+        }
+     
+        
+        function createTodoElement(todo, index) {
+            const todoListContainer = document.getElementById('todo-list');
+            const todoItem = document.createElement('li');
+            todoItem.className = 'todo-item';
+            const todoCheckbox = document.createElement('input');
+            todoCheckbox.type = 'checkbox';
+            todoCheckbox.checked = todo.completed;
+            todoCheckbox.id = `checkbox-${index}`;
+            todoCheckbox.addEventListener('change', function () {
+                toggleTodoStatus(index);
+            });
+            const todoText = document.createElement('span');
+            todoText.className = `todo-text ${todo.completed ? 'completed' : ''}`;
+            todoText.id = `todo-text-${index}`;
+            todoText.innerText = todo.text;
+            todoText.addEventListener('click', function () {
+                editTodoStart(index);
+            });
+            const editButton = document.createElement('button');
+            editButton.innerText = 'Update';
+            editButton.className = 'edit-todo';
+            editButton.id = `edit-button-${index}`;
+            editButton.addEventListener('click', function () {
+                editTodoStart(index);
+            });
+            const deleteButton = document.createElement('button');
+            deleteButton.innerText = 'Delete';
+            deleteButton.className = 'delete-todo';
+            deleteButton.addEventListener('click', function () {
+                deleteTodo(index);
+            });
+            todoItem.appendChild(todoCheckbox);
+            todoItem.appendChild(todoText);
+            todoItem.appendChild(editButton);
+            todoItem.appendChild(deleteButton);
+            todoListContainer.appendChild(todoItem);
+        }
+    </script>
+</body>
+</html>
